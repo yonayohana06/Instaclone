@@ -1,16 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:instaclone/home/home.dart';
 import 'package:instaclone/login/login.dart';
 import 'package:instaclone/register/register.dart';
 
-class LoginScreen extends StatelessWidget {
-  const LoginScreen({super.key});
+class RegisterScreen extends StatelessWidget {
+  const RegisterScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => LoginBloc(),
+      create: (context) => RegisterBloc(),
       child: _View(),
     );
   }
@@ -19,25 +18,38 @@ class LoginScreen extends StatelessWidget {
 class _View extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return BlocListener<LoginBloc, LoginState>(
+    return BlocListener<RegisterBloc, RegisterState>(
       listener: (context, state) {
-        if (state is LoginSuccesful) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Login Succes'),
-              backgroundColor: Colors.green,
-              duration: Duration(seconds: 2),
-            ),
-          );
-          Navigator.popUntil(context, (route) => route.isFirst);
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (_) => const HomeScreen(),
-            ),
+        if (state is RegisterSuccesful) {
+          showDialog(
+            barrierDismissible: true,
+            context: context,
+            builder: (context) {
+              Future.delayed(
+                const Duration(seconds: 2),
+                () => Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const LoginScreen(),
+                  ),
+                  (route) => false,
+                ),
+              );
+              return const AlertDialog(
+                content: Text(
+                  "Successfully",
+                  textAlign: TextAlign.center,
+                ),
+                contentTextStyle: TextStyle(
+                  color: Colors.green,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                ),
+              );
+            },
           );
         }
-        if (state is LoginFailed) {
+        if (state is RegisterFailed) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(state.message),
@@ -49,7 +61,7 @@ class _View extends StatelessWidget {
       },
       child: Scaffold(
         body: Form(
-          key: context.read<LoginBloc>().formKey,
+          key: context.read<RegisterBloc>().formKey,
           child: SingleChildScrollView(
             child: Container(
               margin: const EdgeInsets.only(right: 20, left: 20),
@@ -57,6 +69,7 @@ class _View extends StatelessWidget {
                 children: [
                   const SizedBox(height: 40),
                   TextFormField(
+                    controller: context.read<RegisterBloc>().email,
                     decoration: const InputDecoration(
                       labelText: 'Email',
                       labelStyle: TextStyle(
@@ -68,18 +81,12 @@ class _View extends StatelessWidget {
                         ),
                       ),
                     ),
-                    onSaved: (value) {
-                      context.read<LoginBloc>().email = value ?? '';
-                    },
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Email required';
-                      }
-                      return null;
-                    },
+                    autovalidateMode: AutovalidateMode.onUserInteraction,
+                    validator: context.read<RegisterBloc>().validateEmail,
                   ),
                   const SizedBox(height: 40),
                   TextFormField(
+                    controller: context.read<RegisterBloc>().password,
                     obscureText: true,
                     obscuringCharacter: '*',
                     decoration: const InputDecoration(
@@ -93,20 +100,13 @@ class _View extends StatelessWidget {
                         ),
                       ),
                     ),
-                    onSaved: (value) {
-                      context.read<LoginBloc>().password = value ?? '';
-                    },
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Password required';
-                      }
-                      return null;
-                    },
+                    autovalidateMode: AutovalidateMode.onUserInteraction,
+                    validator: context.read<RegisterBloc>().validatePassword,
                   ),
                   const SizedBox(height: 40),
-                  BlocBuilder<LoginBloc, LoginState>(
+                  BlocBuilder<RegisterBloc, RegisterState>(
                     builder: (context, state) {
-                      if (state is LoginLoading) {
+                      if (state is RegisterScreen) {
                         return ElevatedButton(
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.blueGrey,
@@ -124,33 +124,11 @@ class _View extends StatelessWidget {
                           backgroundColor: Colors.blueGrey,
                         ),
                         onPressed: () {
-                          context.read<LoginBloc>().add(SubmitLogin());
+                          context.read<RegisterBloc>().add(SubmitRegister());
                         },
-                        child: const Text('Login'),
+                        child: const Text("Register"),
                       );
                     },
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Text("Don't have an account? "),
-                      GestureDetector(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => const RegisterScreen(),
-                            ),
-                          );
-                        },
-                        child: const Text(
-                          "Register",
-                          style: TextStyle(
-                            color: Colors.blue,
-                          ),
-                        ),
-                      ),
-                    ],
                   ),
                 ],
               ),

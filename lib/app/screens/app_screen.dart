@@ -10,6 +10,7 @@ class AppScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       title: 'Instaclone',
       home: BlocListener<AuthBloc, AuthState>(
         listener: (context, state) {
@@ -28,6 +29,7 @@ class AppScreen extends StatelessWidget {
               context,
               MaterialPageRoute(
                 builder: (_) => const HomeScreen(),
+                // builder: (_) => const AddPostScreen(),
               ),
             );
           }
